@@ -11,6 +11,7 @@ import {
   Check,
   Briefcase,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { profile } from "@/data/portfolio";
 import { Section, SectionHeading } from "@/components/ui/Section";
@@ -42,7 +43,9 @@ export function Contact() {
     projectType: projectTypes[0] as (typeof projectTypes)[number],
   });
   const [errors, setErrors] = useState<Errors>({});
-  const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   function validate(): boolean {
     const e: Errors = {};
@@ -55,23 +58,42 @@ export function Contact() {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(ev: React.SyntheticEvent) {
+  async function handleSubmit(ev: React.SyntheticEvent) {
     ev.preventDefault();
+    setServerError(null);
     if (!validate()) return;
-    // No backend yet: compose a prefilled email so the message is never lost.
-    const subject = encodeURIComponent(
-      `[${form.projectType}] from ${form.name}`,
-    );
-    const body = encodeURIComponent(
-      `${form.message}\n\n— ${form.name} (${form.email})\nEnquiry type: ${form.projectType}`,
-    );
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
-    setSent(true);
-    setTimeout(() => setSent(false), 4000);
+
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setSubmitSuccess(true);
+        setForm({
+          name: "",
+          email: "",
+          message: "",
+          projectType: projectTypes[0],
+        });
+      } else {
+        setServerError(data.message || "Failed to send message. Please try again.");
+      }
+    } catch {
+      setServerError("Network error. Please check your connection or try emailing directly.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const inputCls =
-    "w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-sm text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--brand-2)]";
+    "w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-[16px] sm:text-sm text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--brand-2)]";
 
   return (
     <Section id="contact">
@@ -183,85 +205,123 @@ export function Contact() {
           </div>
         </Reveal>
 
-        {/* Right: form */}
+        {/* Right: form or success card */}
         <Reveal direction="left">
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            className="card-spotlight glass space-y-4 rounded-2xl p-6 sm:p-8"
-          >
-            <Field label="I'm reaching out about">
-              <div className="flex flex-wrap gap-2">
-                {projectTypes.map((t) => {
-                  const active = form.projectType === t;
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setForm({ ...form, projectType: t })}
-                      aria-pressed={active}
-                      className={
-                        "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors " +
-                        (active
-                          ? "border-transparent bg-[linear-gradient(135deg,var(--brand),var(--brand-2))] text-white"
-                          : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-muted)] hover:border-[var(--brand-2)]/50")
-                      }
-                    >
-                      {t}
-                    </button>
-                  );
-                })}
+          {submitSuccess ? (
+            <div className="card-spotlight glass space-y-6 rounded-2xl border border-green-500/40 p-6 text-center sm:p-9">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-green-500/20 text-green-400">
+                <Check size={32} />
               </div>
-            </Field>
-            <Field label="Name" error={errors.name}>
-              <input
-                className={inputCls}
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Your name"
-                aria-invalid={!!errors.name}
-              />
-            </Field>
-            <Field label="Email" error={errors.email}>
-              <input
-                type="email"
-                className={inputCls}
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@email.com"
-                aria-invalid={!!errors.email}
-              />
-            </Field>
-            <Field label="Message" error={errors.message}>
-              <textarea
-                rows={5}
-                className={inputCls}
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                placeholder="Tell me about the role or project…"
-                aria-invalid={!!errors.message}
-              />
-            </Field>
-
-            <motion.button
-              type="submit"
-              whileTap={{ scale: 0.97 }}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--brand),var(--brand-2))] px-6 py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-glow)] transition-transform hover:scale-[1.01]"
+              <div>
+                <h3 className="text-2xl font-bold text-[var(--text)]">Message Sent!</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                  Thank you for reaching out! Your message has been sent directly to Omkar. He will review it and get back to you shortly.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={() => setSubmitSuccess(false)}
+                  className="rounded-xl border border-[var(--border-strong)] bg-[var(--surface-2)] px-5 py-3 text-sm font-semibold transition-colors hover:bg-[var(--surface-1)]"
+                >
+                  Send another message
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="card-spotlight glass space-y-4 rounded-2xl p-6 sm:p-8"
             >
-              {sent ? (
-                <>
-                  <Check size={17} /> Opening your mail app…
-                </>
-              ) : (
-                <>
-                  <Send size={16} /> Send Message
-                </>
+              {serverError && (
+                <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3.5 text-xs text-red-400">
+                  {serverError}
+                </div>
               )}
-            </motion.button>
-            <p className="text-center text-xs text-[var(--text-faint)]">
-              Your message opens in your email client — nothing is stored.
-            </p>
-          </form>
+
+              <Field label="I'm reaching out about">
+                <div className="flex flex-wrap gap-2">
+                  {projectTypes.map((t) => {
+                    const active = form.projectType === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setForm({ ...form, projectType: t })}
+                        aria-pressed={active}
+                        suppressHydrationWarning
+                        className={
+                          "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors " +
+                          (active
+                            ? "border-transparent bg-[linear-gradient(135deg,var(--brand),var(--brand-2))] text-white"
+                            : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-muted)] hover:border-[var(--brand-2)]/50")
+                        }
+                      >
+                        {t}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+              <Field label="Name" error={errors.name}>
+                <input
+                  className={inputCls}
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Your name"
+                  aria-invalid={!!errors.name}
+                  disabled={submitting}
+                  suppressHydrationWarning
+                />
+              </Field>
+              <Field label="Email" error={errors.email}>
+                <input
+                  type="email"
+                  className={inputCls}
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="you@email.com"
+                  aria-invalid={!!errors.email}
+                  disabled={submitting}
+                  suppressHydrationWarning
+                />
+              </Field>
+              <Field label="Message" error={errors.message}>
+                <textarea
+                  rows={5}
+                  className={inputCls}
+                  value={form.message}
+                  onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  placeholder="Tell me about the role or project…"
+                  aria-invalid={!!errors.message}
+                  disabled={submitting}
+                  suppressHydrationWarning
+                />
+              </Field>
+
+              <motion.button
+                type="submit"
+                disabled={submitting}
+                whileTap={{ scale: 0.97 }}
+                suppressHydrationWarning
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--brand),var(--brand-2))] px-6 py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-glow)] transition-transform hover:scale-[1.01] disabled:opacity-60"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 size={17} className="animate-spin" /> Sending message…
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} /> Send Message
+                  </>
+                )}
+              </motion.button>
+              <p className="text-center text-xs text-[var(--text-faint)]">
+                Your message is sent securely — Omkar will reply to your email.
+              </p>
+            </form>
+          )}
         </Reveal>
       </div>
     </Section>
@@ -308,6 +368,7 @@ function ContactRow({
           type="button"
           onClick={handleCopy}
           title={`Copy ${label}`}
+          suppressHydrationWarning
           className="ml-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:border-[var(--brand-2)] hover:text-[var(--text)]"
         >
           {copied ? "Copied!" : "Copy"}

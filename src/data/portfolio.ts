@@ -27,7 +27,7 @@ export const profile = {
   phoneRaw: "917219290885",
   dob: "3 January 2003",
   availability: "Available for freelance & full-time opportunities",
-  resumePdf: "/assets/resume.pdf",
+  resumePdf: "/assets/Omkar_Katturwar_2026.pdf",
   photo: "/assets/profile1.jpeg",
 } as const;
 
@@ -129,20 +129,6 @@ export const experience = [
       "Manage client communication, timelines and deliverables independently.",
     ],
     tech: ["Full-Stack", "AI Integration", "React", "Python", "REST APIs"],
-  },
-  {
-    role: "Junior Software Developer",
-    company: "Code Serve Tech Solutions",
-    location: "Pune",
-    period: "2026 — Present",
-    current: true,
-    points: [
-      "Building and maintaining full-stack web applications with modern JavaScript, Python and REST APIs.",
-      "Developing AI-assisted features and integrating ML/NLP capabilities into client products.",
-      "Collaborating with the team on architecture, code reviews and shipping production releases.",
-      "Writing clean, reusable, scalable code and contributing across the development lifecycle.",
-    ],
-    tech: ["JavaScript", "Python", "React", "REST APIs", "AI Integration"],
   },
   {
     role: "Technical Support Engineer",

@@ -78,6 +78,7 @@ export function AIAssistant() {
         onClick={() => setOpen((o) => !o)}
         data-cursor="hover"
         aria-label="Open AI assistant"
+        suppressHydrationWarning
         className="fixed bottom-6 right-6 z-50 grid h-14 w-14 place-items-center rounded-full bg-[linear-gradient(135deg,var(--brand),var(--brand-2))] text-white shadow-[0_12px_30px_-8px_var(--glow)]"
       >
         <AnimatePresence mode="wait">
@@ -200,12 +201,14 @@ export function AIAssistant() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask anything…"
                 aria-label="Message"
-                className="flex-1 rounded-full bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none placeholder:text-[var(--text-faint)]"
+                suppressHydrationWarning
+                className="flex-1 rounded-full bg-[var(--surface-2)] px-4 py-2.5 text-[16px] sm:text-sm outline-none placeholder:text-[var(--text-faint)]"
               />
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
                 aria-label="Send"
+                suppressHydrationWarning
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,var(--brand),var(--brand-2))] text-white disabled:opacity-40"
               >
                 <Send size={16} />

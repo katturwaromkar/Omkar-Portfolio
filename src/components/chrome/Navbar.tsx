@@ -93,6 +93,7 @@ export function Navbar() {
             onClick={toggle}
             aria-label="Toggle theme"
             data-cursor="hover"
+            suppressHydrationWarning
             className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
           >
             {mounted && theme === "dark" ? (
@@ -115,6 +116,7 @@ export function Navbar() {
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
             aria-expanded={open}
+            suppressHydrationWarning
             className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] lg:hidden"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
