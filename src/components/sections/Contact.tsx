@@ -93,7 +93,7 @@ export function Contact() {
   }
 
   const inputCls =
-    "w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-[16px] sm:text-sm text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--brand-2)]";
+    "relative z-10 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-[16px] sm:text-sm text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--brand-2)] focus:ring-2 focus:ring-[var(--brand-2)]/40";
 
   return (
     <Section id="contact">
@@ -395,13 +395,13 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-faint)]">
         {label}
       </span>
       {children}
       {error && <span className="mt-1 block text-xs text-red-400">{error}</span>}
-    </label>
+    </div>
   );
 }
 

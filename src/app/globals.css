@@ -163,6 +163,7 @@ body {
   opacity: 0;
   transition: opacity 0.4s;
   z-index: 1;
+  pointer-events: none;
 }
 .card-spotlight:hover::before {
   opacity: 1;
